@@ -6,7 +6,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader, random_split
 
 from utils.trainer import train
-from utils.constants import device
+from utils.constants import device, data_transform
 from utils.dataset import ImageStateDataset
 from networks.autoencoder import Autoencoder
 
@@ -22,14 +22,8 @@ if __name__ == '__main__':
     if not os.path.exists('weights/'):
         os.mkdir('weights/')
 
-    #Normalize dataset
-    data_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-    ])
-
     #Split data
-    full_dataset = ImageStateDataset('pitfall/', transform=data_transform)
+    full_dataset = ImageStateDataset('pitfall/')
     train_size = int(0.8 * len(full_dataset))
     test_size = len(full_dataset) - train_size
     train_dataset, test_dataset = random_split(

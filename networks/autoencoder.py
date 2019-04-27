@@ -90,6 +90,13 @@ class Autoencoder(nn.Module):
 
         return img_x, mem_x
 
+    def text_forward(self, sentence):
+        x = self.word_embeddings(sentence)
+        _, (x, _) = self.lstm(x)
+        x = x.view(-1, self.lstm_dim)
+        x = self.fc_sen(x)
+        return x
+
     def forward(self, x1, x2, sentence):
         #Encoder
         x1, x2, x_diff = self.get_diff(x1, x2)
@@ -99,9 +106,6 @@ class Autoencoder(nn.Module):
         img_x2, mem_x2 = self.decoder_forward(x2)
 
         #Sentence
-        embedding = self.word_embeddings(sentence)
-        _, (embedding, _) = self.lstm(embedding)
-        embedding = embedding.view(-1, self.lstm_dim)
-        embedding = self.fc_sen(embedding)
+        txt_embedding = self.text_forward(sentence)
 
-        return img_x1, mem_x1, img_x2, mem_x2, x_diff, embedding
+        return img_x1, mem_x1, img_x2, mem_x2, x_diff, txt_embedding

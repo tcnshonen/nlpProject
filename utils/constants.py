@@ -1,8 +1,14 @@
 import torch
+from torchvision import transforms
 
 ram_size = 128
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+data_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])
 
 sentence_dic = {
     'climb_down_ladder': 'climb down the ladder',

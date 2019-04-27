@@ -9,11 +9,8 @@ def train(epoch, net, opt, loader):
     net.train()
     length = len(loader)
     t0 = perf_counter()
+
     for i, (img1_target, ram1_target, img2_target, ram2_target, sent) in enumerate(loader):
-        #img1_target = img1_target.to(device)
-        #ram1_target = ram1_target.to(device, dtype=torch.long)
-        #img2_target = img2_target.to(device)
-        #ram2_target = ram2_target.to(device, dtype=torch.long)
 
         indices = [i for i, x in enumerate(sent) if not all(x == torch.zeros(8, dtype=torch.long, device=device))]
         img1_target, ram1_target = img1_target[indices], ram1_target[indices]
@@ -36,7 +33,7 @@ def train(epoch, net, opt, loader):
         loss.backward()
         opt.step()
 
-        print('\rTrain Epoch: {} [{}/{} ({:.0f}%)]\tMemory Loss: {:.4f}\tImage Loss: {:.4f}\tSentence Loss: {:.4f} - {}s'.format(
+        print('\rTrain Epoch: {} [{}/{} ({:.1f}%)]\tMemory Loss: {:.4f}\tImage Loss: {:.4f}\tSentence Loss: {:.4f} - {}s'.format(
             epoch, i + 1, length, 100. * (i + 1) / length,
             ram1_loss.item() + ram2_loss.item(), img1_loss.item() + img2_loss.item(),
             sen_loss.item(), int(perf_counter() - t0)), end='')
@@ -45,5 +42,27 @@ def train(epoch, net, opt, loader):
         torch.cuda.empty_cache()
 
 
-def test():
-    return
+def get_embeddings(net, loader, log=True):
+    net.eval()
+    length = len(loader)
+    t0 = perf_counter()
+
+    embeddings = []
+    embedding_nums = []
+    embedding_actions = []
+
+    for i, (img, _, (num, action)) in enumerate(loader):
+
+        embedding = net.flatten_forward(img)
+        embeddings.extend(embedding.cpu().detach().numpy())
+        embedding_nums.extend(num)
+        embedding_actions.extend(action)
+
+        print('{}/{} ({:.1f}%) - {}s'.format(
+            i + 1, length, 100. * (i + 1) / length,
+            int(perf_counter() - t0)), end='\r')
+
+        del img, num, action, embedding
+        torch.cuda.empty_cache()
+
+    return embeddings, embedding_nums, embedding_actions
