@@ -12,7 +12,6 @@ from utils.constants import device
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', default=8, type=int)
-    parser.add_argument('weight_path', default='weights/model1.pth', type=str)
     args = parser.parse_args()
 
     #Split data
@@ -24,7 +23,7 @@ if __name__ == '__main__':
     #Create model
     print('Creating Model', end='\r')
     model = Autoencoder().to(device)
-    model.load_state_dict(torch.load(args.weight_path))
+    model.load_state_dict(torch.load('weights/model1.pth'))
 
 
     #Start training
@@ -35,7 +34,8 @@ if __name__ == '__main__':
     embeddings = []
     embedding_names = []
 
-    for i, (img, name) in enumerate(loader):
+    for i, (img, name) in enumerate(dataloader):
+        if i > 10: break
         embedding = net.flatten_forward(img)
         embeddings.extend(embedding.cpu().detach().numpy())
         embedding_names.extend(name)

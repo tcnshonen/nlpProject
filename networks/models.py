@@ -151,11 +151,14 @@ class Autoencoder(nn.Module):
         temp_num = temp.data.view(1, -1).size(1)
         return temp_shape[1:], temp_num
 
-    def forward(self, x):
-        #Encoder
+    def flatten_forward(self, x):
         x = self.encoder(x)
         x = x.view(-1, self.flatten_num)
         x = self.fc1(x)
+        return x
+
+    def forward(self, x):
+        x = self.flatten_forward(x)
 
         #Decoder
         x = self.fc_mem(x)
