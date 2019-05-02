@@ -29,18 +29,15 @@ class Trainer(object):
             loss.backward()
             self.opt.step()
 
-            log(epoch, i, t0, loss.item())
+            self.log(epoch, i, t0, loss.item())
 
             torch.cuda.empty_cache()
 
 
 class AE_Trainer(Trainer):
-    def __init__(self):
-        super(AE_Trainer, self).__init__()
-
     def forward(self, data):
         img, ram = data
-        ram_output = self.net(ram)
+        ram_output = self.net(img)
         loss = F.cross_entropy(ram_output, ram)
         return loss
 
