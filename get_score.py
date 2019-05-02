@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     for i, (img, name) in enumerate(dataloader):
         if i > 10: break
-        embedding = net.flatten_forward(img)
+        embedding = model.flatten_forward(img)
         embeddings.extend(embedding.cpu().detach().numpy())
         embedding_names.extend(name)
 
