@@ -117,3 +117,35 @@ class TestingDataset(Dataset):
             assert num == num2, "Image path doesn't match with ram path"
 
         return img, ram, (num, action)
+
+
+class AEDataset(Dataset):
+    def __init__(self, root_dir, transform=data_transform):
+        self.root_dir = root_dir
+        self.transform = transform
+
+        #Sort image and state paths based on frame number
+        self.img_paths = sorted(
+            glob(root_dir + '*/screenshots/*.png'),
+            key=lambda i: int(os.path.basename(i).split('.')[0]))
+        self.ram_paths = sorted(
+            glob(root_dir + '*/states/*.bin'),
+            key=lambda i: int(os.path.basename(i).split('.')[0]))
+        assert len(self.img_paths) == len(self.ram_paths), "Paths don't match"
+
+
+    def __len__(self):
+        return len(self.img_paths)
+
+    def __getitem__(self, idx):
+        img_path = self.img_paths[idx]
+        img = plt.imread(img_path)
+        if self.transform:
+            img = self.transform(img)
+        img = img.to(device)
+
+        ram_path = self.ram_paths[idx]
+        ram = np.fromfile(ram_path, dtype=np.uint8)
+        ram = torch.from_numpy(ram).to(device, dtype=torch.long)
+
+        return img, ram

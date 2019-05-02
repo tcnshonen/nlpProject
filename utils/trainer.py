@@ -5,6 +5,52 @@ from time import perf_counter
 from .constants import device
 
 
+class Trainer(object):
+    def __init__(self, net, opt, loader):
+        self.net = net
+        self.opt = opt
+        self.loader = loader
+        self.length = len(self.loader)
+
+    def forward(self, data):
+        raise NotImplemented
+
+    def log(self, epoch):
+        raise NotImplemented
+
+    def train(self, epoch):
+        self.net.train()
+        length = len(self.loader)
+        t0 = perf_counter()
+
+        for i, data in enumerate(self.loader):
+            self.opt.zero_grad()
+            loss = self.forward(data)
+            loss.backward()
+            self.opt.step()
+
+            log(epoch, i, t0, loss.item())
+
+            torch.cuda.empty_cache()
+
+
+class AE_Trainer(Trainer):
+    def __init__(self):
+        super(AE_Trainer, self).__init__()
+
+    def forward(self, data):
+        img, ram = data
+        ram_output = self.net(ram)
+        loss = F.cross_entropy(ram_output, ram)
+        return loss
+
+    def log(self, epoch, i, t0, loss):
+        print('Train Epoch: {} [{}/{} ({:.1f}%)]\tLoss: {:.4f} - {}s'.format(
+            epoch, i + 1, self.length, 100. * (i + 1) / self.length,
+            loss, int(perf_counter() - t0)), end='\r')
+
+
+
 def train(epoch, net, opt, loader):
     net.train()
     length = len(loader)

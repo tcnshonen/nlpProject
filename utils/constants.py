@@ -1,7 +1,7 @@
 import torch
 from torchvision import transforms
 
-ram_size = 128
+ram_size = 4096
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 

@@ -5,10 +5,10 @@ from .layers import ConvLayer, LinearLayer
 from utils.constants import word_to_ix, ram_size
 
 
-class Autoencoder(nn.Module):
+class New_Autoencoder(nn.Module):
     def __init__(self, embedding_dim=256, sentence_num=10, lstm_dim=128,
                  input_shape=(3, 224, 160), dropout=False, activation_name='relu'):
-        super(Autoencoder, self).__init__()
+        super(New_Autoencoder, self).__init__()
         self.sentence_num = sentence_num
         self.input_shape = input_shape
         self.lstm_dim = lstm_dim
@@ -109,3 +109,60 @@ class Autoencoder(nn.Module):
         txt_embedding = self.text_forward(sentence)
 
         return img_x1, mem_x1, img_x2, mem_x2, x_diff, txt_embedding
+
+
+class Autoencoder(nn.Module):
+    def __init__(self, embedding_dim=256, input_shape=(3, 224, 256),
+                 dropout=False, activation_name='relu'):
+        super(Autoencoder, self).__init__()
+        self.sentence_num = sentence_num
+        self.input_shape = input_shape
+        self.lstm_dim = lstm_dim
+        self.config = {'dropout': dropout, 'activation_name': activation_name}
+
+        self.encoder_config = {'dropout': dropout, 'activation_name': 'leakyrelu'}
+
+        #Encoder
+        self.encoder = nn.Sequential(
+            ConvLayer(3, 64, 4, stride=2, padding=1, **self.encoder_config),
+            ConvLayer(64, 128, 4, stride=2, padding=1, **self.encoder_config),
+            ConvLayer(128, 256, 4, stride=2, padding=1, **self.encoder_config),
+            ConvLayer(256, 512, 4, stride=2, padding=1, **self.encoder_config),
+            ConvLayer(512, 1024, 4, stride=2, padding=1, **self.encoder_config)
+        )
+
+        #Flatten
+        self.last_shape, self.flatten_num = self.flatten_shape(self.input_shape)
+        self.fc1 = LinearLayer(self.flatten_num, 256, **self.config)
+
+        #Memory Decoder
+        self.fc_mem = LinearLayer(256, ram_size * 4, **self.config)
+        self.memory_decoder = nn.Sequential(
+            nn.Linear(4, 64),
+            nn.BatchNorm1d(ram_size),
+            nn.ELU(),
+            nn.Dropout(),
+            nn.Linear(64, 256),
+        )
+
+
+    def flatten_shape(self, shape):
+        temp = torch.rand(1, *shape)
+        temp = self.encoder(temp)
+        temp_shape = temp.size()
+        temp_num = temp.data.view(1, -1).size(1)
+        return temp_shape[1:], temp_num
+
+    def forward(self, x):
+        #Encoder
+        x = self.encoder(x)
+        x = x.view(-1, self.flatten_num)
+        x = self.fc1(x)
+
+        #Decoder
+        x = self.fc_mem(x)
+        x = x.view(-1, ram_size, 4)
+        x = self.memory_decoder(mem_x)
+        x.transpose_(1, 2)
+
+        return x
