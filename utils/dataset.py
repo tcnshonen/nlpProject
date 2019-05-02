@@ -149,3 +149,25 @@ class AEDataset(Dataset):
         ram = torch.from_numpy(ram).to(device, dtype=torch.long)
 
         return img, ram
+
+
+class AETestingDataset(Dataset):
+    def __init__(self, root_dir, transform=data_transform):
+        self.root_dir = root_dir
+        self.transform = transform
+
+        self.img_paths = sorted(
+            glob(root_dir + '*/screenshots/*.png'),
+            key=lambda i: int(os.path.basename(i).split('.')[0]))
+
+    def __len__(self):
+        return len(self.img_paths)
+
+    def __getitem__(self, idx):
+        img_path = self.img_paths[idx]
+        img = plt.imread(img_path)
+        if self.transform:
+            img = self.transform(img)
+        img = img.to(device)
+
+        return img, img_path[len(self.root_dir):]
