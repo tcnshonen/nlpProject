@@ -1,25 +1,25 @@
-import os
 import torch
 import argparse
-import torch.optim as optim
+import numpy as np
+from time import perf_counter
 from torch.utils.data import DataLoader
 
-from utils.trainer import AE_Trainer
-from utils.dataset import AEDataset
+from utils.dataset import AETestingDataset
 from networks.models import Autoencoder
-from utils.constants import device, data_transform
+from utils.constants import device
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--batch_size', default=8, type=int)
     parser.add_argument('weight_path', default='weights/model1.pth', type=str)
     args = parser.parse_args()
 
     #Split data
     print('Loading Data', end='\r')
-    dataset = AEDataset('../data/mario/')
+    dataset = AETestingDataset('../data/mario/')
     dataloader = DataLoader(dataset, batch_size=args.batch_size,
-                            shuffle=True, num_workers=0)
+                            shuffle=False, num_workers=0)
 
     #Create model
     print('Creating Model', end='\r')
@@ -29,24 +29,23 @@ if __name__ == '__main__':
 
     #Start training
     model.eval()
-    length = len(loader)
+    length = len(dataloader)
     t0 = perf_counter()
 
     embeddings = []
-    embedding_nums = []
-    embedding_actions = []
+    embedding_names = []
 
-    for i, (img, ram) in enumerate(loader):
+    for i, (img, name) in enumerate(loader):
         embedding = net.flatten_forward(img)
         embeddings.extend(embedding.cpu().detach().numpy())
-        embedding_nums.extend(num)
-        embedding_actions.extend(action)
+        embedding_names.extend(name)
 
         print('{}/{} ({:.1f}%) - {}s'.format(
             i + 1, length, 100. * (i + 1) / length,
             int(perf_counter() - t0)), end='\r')
 
-        del img, num, action, embedding
+        del img, name, embedding
         torch.cuda.empty_cache()
 
-    return embeddings, embedding_nums, embedding_actions
+    np.save('embedding.npy', embeddings)
+    np.save('embedding_names.npy', embedding_names)
