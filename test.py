@@ -22,7 +22,7 @@ if __name__ == '__main__':
         os.mkdir('weights/')
 
     #Split data
-    dataset = AEDataset('data/mario/')
+    dataset = AEDataset('../data/mario/')
     dataloader = DataLoader(dataset, batch_size=args.batch_size,
                             shuffle=True, num_workers=0)
 

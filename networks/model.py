@@ -112,12 +112,10 @@ class New_Autoencoder(nn.Module):
 
 
 class Autoencoder(nn.Module):
-    def __init__(self, embedding_dim=256, input_shape=(3, 224, 256),
-                 dropout=False, activation_name='relu'):
+    def __init__(self, input_shape=(3, 224, 256), dropout=False,
+				 activation_name='relu'):
         super(Autoencoder, self).__init__()
-        self.sentence_num = sentence_num
         self.input_shape = input_shape
-        self.lstm_dim = lstm_dim
         self.config = {'dropout': dropout, 'activation_name': activation_name}
 
         self.encoder_config = {'dropout': dropout, 'activation_name': 'leakyrelu'}
