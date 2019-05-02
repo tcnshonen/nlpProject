@@ -35,7 +35,6 @@ if __name__ == '__main__':
     embedding_names = []
 
     for i, (img, name) in enumerate(dataloader):
-        if i > 10: break
         embedding = model.flatten_forward(img)
         embeddings.extend(embedding.cpu().detach().numpy())
         embedding_names.extend(name)
@@ -47,5 +46,5 @@ if __name__ == '__main__':
         del img, name, embedding
         torch.cuda.empty_cache()
 
-    np.save('embedding.npy', embeddings)
+    np.save('embeddings.npy', embeddings)
     np.save('embedding_names.npy', embedding_names)
