@@ -94,8 +94,6 @@ if __name__ == '__main__':
             results.append(average_precision_score(y_true, scores))
         return np.mean(results)
 
-
-<<<<<<< HEAD
     # Get F1 score for embeddings
     for action in action_list:
         f1_score = get_F1(action)
