@@ -25,3 +25,16 @@ def get_grid(arr, dataset, network=None):
     grid = grid.permute(1, 2, 0).detach().cpu().numpy()
 
     return grid
+
+def mAP(vectors, t):
+    special_frames = list(range(0, len(vectors), 60))
+    results = []
+    normalized_vectors = vectors / torch.norm(vectors, 2, 1).view(-1, 1)
+    for special_frame in special_frames:
+        y_true = torch.tensor([abs(i-special_frame)<=t for i in range(len(vectors))])
+        target = normalized_vectors[special_frame].view(-1, 1)
+        scores = torch.mm(normalized_vectors, target)
+        y_true[special_frame] = 0
+        scores[special_frame] = min(scores).item()
+        results.append(average_precision_score(y_true, scores))
+    print(np.mean(results))
