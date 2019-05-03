@@ -76,6 +76,10 @@ if __name__ == '__main__':
     origin_embeddings = embeddings[indices]
     origin_embeddings = origin_embeddings / np.linalg.norm(origin_embeddings, axis=1).reshape((-1, 1))
 
+    for i, (img, name) in enumerate(dataloader):
+        embedding = model.flatten_forward(img)
+        embeddings.extend(embedding.cpu().detach().numpy())
+        embedding_names.extend(name)
 
     def get_F1(action):
         action_index = action_list.index(action)
@@ -91,6 +95,7 @@ if __name__ == '__main__':
         return np.mean(results)
 
 
+<<<<<<< HEAD
     # Get F1 score for embeddings
     for action in action_list:
         f1_score = get_F1(action)
