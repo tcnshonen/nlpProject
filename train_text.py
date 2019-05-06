@@ -13,21 +13,23 @@ from networks.models import Autoencoder, TextModel
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs', default=2, type=int)
-    parser.add_argument('--batch_size', default=8, type=int)
+    parser.add_argument('--epochs', default=200, type=int)
+    parser.add_argument('--batch_size', default=16, type=int)
     parser.add_argument('--lr', default=0.003, type=float)
     parser.add_argument('--save_frequency', default=1, type=int)
     args = parser.parse_args()
 
+    print('Loading Autoencoder')
     autoencoder = Autoencoder().to(device)
-    #autoencoder.load_state_dict(torch.load('weights/model1.pth'))
+    autoencoder.load_state_dict(torch.load('weights/model1.pth'))
     autoencoder.eval()
 
+    print('Creating Model')
     text_model = TextModel().to(device)
     optimizer = optim.Adam(text_model.parameters(), lr=args.lr)
 
-
-    dataset = TextTrainingDataset('../mario')
+    print('Loading Data')
+    dataset = TextTrainingDataset('../data/mario')
     loader = DataLoader(dataset, batch_size=args.batch_size,
                         shuffle=True, collate_fn=my_collate)
 
@@ -35,8 +37,9 @@ if __name__ == '__main__':
         length = len(loader)
         t0 = perf_counter()
         for i, (img1, img2, sent) in enumerate(loader):
-            embedding1 = autoencoder.flatten_forward(img1)
-            embedding2 = autoencoder.flatten_forward(img2)
+            with torch.no_grad():
+                embedding1 = autoencoder.flatten_forward(img1)
+                embedding2 = autoencoder.flatten_forward(img2)
 
             optimizer.zero_grad()
             output = text_model(sent, embedding1)
@@ -49,3 +52,6 @@ if __name__ == '__main__':
                 int(perf_counter() - t0)), end='\r')
 
             torch.cuda.empty_cache()
+
+        if epoch % args.save_frequency == 0:
+            torch.save(text_model.state_dict(), 'weights/text_model{}.pth'.format(epoch))
