@@ -57,13 +57,49 @@ class Autoencoder(nn.Module):
         #Decoder
         x = self.fc_mem(x)
         x = x.view(-1, ram_size, 4)
-        x = self.memory_decoder(mem_x)
+        x = self.memory_decoder(x)
         x.transpose_(1, 2)
 
         return x
 
 
 class TextModel(nn.Module):
+    def __init__(self, input_dim=256, embedding_dim=256, lstm_dim=512):
+        super(TextModel, self).__init__()
+
+        self.input_dim = input_dim
+        self.embedding_dim = embedding_dim
+        self.lstm_dim = lstm_dim
+
+        self.word_embeddings = nn.Embedding(len(word_to_ix), self.embedding_dim)
+        self.lstm = nn.LSTM(self.embedding_dim, self.lstm_dim, batch_first=True,
+                            num_layers=1, bidirectional=False)
+
+        self.fc1 = LinearLayer(self.input_dim*2+self.lstm_dim, 512)
+        self.fc2 = LinearLayer(512, 256)
+        self.fc3 = LinearLayer(256, 128)
+        self.fc_out = nn.Linear(128, 2)
+
+    def forward(self, sent, emb1, emb2):
+        x = self.word_embeddings(sent)
+        _, (x, _) = self.lstm(x)
+        x = x.view(-1, self.lstm_dim)
+
+        emb = torch.cat((emb1, emb2), 1)
+        x = torch.cat((emb, x), 1)
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = self.fc3(x)
+        x = self.fc_out(x)
+
+        return x
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+class OldTextModel(nn.Module):
     def __init__(self, input_dim=256, embedding_dim=256, output_dim=256,
                  lstm_dim=256):
         super(TextModel, self).__init__()
@@ -88,12 +124,7 @@ class TextModel(nn.Module):
         return x
 
 
-###############################################################################
-###############################################################################
-###############################################################################
-
-
-class New_Autoencoder(nn.Module):
+class OldAutoencoder(nn.Module):
     def __init__(self, embedding_dim=256, sentence_num=10, lstm_dim=128,
                  input_shape=(3, 224, 160), dropout=False, activation_name='relu'):
         super(New_Autoencoder, self).__init__()

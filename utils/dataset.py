@@ -59,6 +59,89 @@ class TextTrainingDataset(Dataset):
         self.root_dir = root_dir
         self.min_interval = min_interval
         self.max_interval = max_interval
+        self.gap = self.max_interval - self.min_interval
+        self.transform = transform
+        self.length = len(glob('{}/origin/imgs/*.png'.format(self.root_dir)))
+
+        self.max_nums = {}
+        for action in sentence_dic.keys():
+            self.max_nums[action] = [0] * self.length
+            for i in range(self.length):
+                for j in range(60, 0, -1):
+                    exist = os.path.exists('{}/{}/imgs/{}.{}.png'.format(
+                        self.root_dir, action, i, j))
+                    if exist:
+                        self.max_nums[action][i] = j
+                        break
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        bool1 = np.random.choice([0, 1], p=[0.25, 0.75])
+        bool2 = np.random.choice([0, 1], p=[0.33, 0.67])
+
+        action_true, sent = random.choice(list(sentence_dic.items()))
+        action_false = action_true
+        while action_true == action_false:
+            action_false = random.choice(list(sentence_dic.keys()))
+
+        action = action_true if bool1 else action_false
+        max_num = self.max_nums[action][idx]
+
+        first_img_path = '{}/origin/imgs/{}.png'.format(self.root_dir, idx)
+        first_img = plt.imread(first_img_path)
+
+        #
+        # if bool1:
+        #     if bool2:
+        #         second_num = random.randint(self.min_interval, self.max_interval)
+        #     else:
+        #         second_num = random.randint(1, max_num - self.gap - 1)
+        #         if second_num >= self.min_interval:
+        #             second_num = second_num + self.gap + 1
+        # else:
+        #     second_num = random.randint(1, max_num)
+
+        if max_num == 0:
+            return None
+        second_num = random.randint(1, max_num)
+        if second_num >= self.min_interval and second_num <= self.max_interval:
+            bool2 = 1
+        else:
+            bool2 = 0
+
+
+
+        second_img = plt.imread(
+            '{}/{}/imgs/{}.{}.png'.format(self.root_dir, action, idx, second_num)
+        )
+
+        if self.transform:
+            first_img = self.transform(first_img)
+            second_img = self.transform(second_img)
+        first_img = first_img.to(device)
+        second_img = second_img.to(device)
+
+        sentence = prepare_sequence(sent.split(), word_to_ix)
+
+        output = torch.zeros(2, dtype=torch.float)
+        output[int(bool1 and bool2)] = 1.
+
+        return first_img, second_img, sentence, output
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+
+class OldTextTrainingDataset(Dataset):
+    def __init__(self, root_dir, min_interval=20, max_interval=30,
+                 transform=data_transform):
+        self.root_dir = root_dir
+        self.min_interval = min_interval
+        self.max_interval = max_interval
         self.transform = transform
         self.length = len(glob('{}/origin/imgs/*.png'.format(self.root_dir)))
 
@@ -105,11 +188,6 @@ class TextTrainingDataset(Dataset):
         sentence = prepare_sequence(sent.split(), word_to_ix)
 
         return first_img, second_img, sentence
-
-
-###############################################################################
-###############################################################################
-###############################################################################
 
 
 class TrainingDataset(Dataset):
