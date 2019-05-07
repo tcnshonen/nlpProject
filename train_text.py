@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     print('Loading Autoencoder')
     autoencoder = Autoencoder().to(device)
-    #autoencoder.load_state_dict(torch.load('weights/model1.pth'))
+    autoencoder.load_state_dict(torch.load('weights/model1.pth'))
     autoencoder.eval()
 
     print('Creating Model')
