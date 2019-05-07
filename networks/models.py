@@ -6,8 +6,8 @@ from utils.constants import word_to_ix, ram_size
 
 
 class MixModel(nn.Module):
-    def __init__(self, embedding_dim=64, lstm_dim=256, bottleneck=256,
-                 input_shape=(3, 224, 160), dropout=False,
+    def __init__(self, embedding_dim=64, lstm_dim=512, bottleneck=256,
+                 input_shape=(3, 224, 256), dropout=False,
                  activation_name='relu'):
         super(MixModel, self).__init__()
         self.input_shape = input_shape
@@ -44,8 +44,8 @@ class MixModel(nn.Module):
         #RNN
         self.embedding = nn.Embedding(len(word_to_ix), self.embedding_dim)
         self.lstm = nn.LSTM(self.embedding_dim, self.lstm_dim, batch_first=True)
-        self.fc1 = LinearLayer(2*self.bottleneck+self.lstm_dim, 256, activation_name='elu')
-        self.fc2 = LinearLayer(256, 64, activation_name='elu')
+        self.fc_sen1 = LinearLayer(2*self.bottleneck+self.lstm_dim, 256, activation_name='relu')
+        self.fc_sen2 = LinearLayer(256, 64, activation_name='relu')
         self.fc_out = nn.Linear(64, 2)
 
 
@@ -73,11 +73,11 @@ class MixModel(nn.Module):
 
     def decoder_forward(self, x):
         x = self.fc_mem(x)
-        x = mem_x.view(-1, ram_size, 4)
+        x = x.view(-1, ram_size, 4)
         x = self.memory_decoder(x)
         x.transpose_(1, 2)
 
-        return mem_x
+        return x
 
     def text_forward(self, sentence, x1, x2):
         x = self.embedding(sentence)
@@ -86,24 +86,24 @@ class MixModel(nn.Module):
 
         x_ = torch.cat((x1, x2), 1)
         x = torch.cat((x_, x), 1)
-        x = self.fc1(x)
-        x = self.fc2(x)
+        x = self.fc_sen1(x)
+        x = self.fc_sen2(x)
         x = torch.sigmoid(self.fc_out(x))
-        
+
         return x
 
     def forward(self, x1, x2, sentence):
         #Encoder
         #x1, x2, diff = self.get_diff(x1, x2)
         x1 = self.flatten_forward(x1)
-        xw = self.flatten_forward(x2)
+        x2 = self.flatten_forward(x2)
+
+        #Sentence
+        cls = self.text_forward(sentence, x1, x2)
 
         #Decoder
         x1 = self.decoder_forward(x1)
         x2 = self.decoder_forward(x2)
-
-        #Sentence
-        cls = self.text_forward(sentence, x1, x2)
 
         return x1, x2, cls
 

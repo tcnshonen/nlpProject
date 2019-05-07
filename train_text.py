@@ -7,8 +7,8 @@ from time import perf_counter
 from torch.utils.data import DataLoader, random_split
 
 from utils.constants import *
-from utils.dataset import TextTrainingDataset, my_collate
-from networks.models import Autoencoder, TextModel
+from utils.dataset import MixDataset, my_collate
+from networks.models import MixModel
 
 
 if __name__ == '__main__':
@@ -35,11 +35,12 @@ if __name__ == '__main__':
                              shuffle=False, collate_fn=my_collate)
 
 
-    for epoch in range(1, epoch+1):
+    for epoch in range(1, args.epochs+1):
         length = len(train_loader)
         t0 = perf_counter()
         mix_model.train()
         for i, data in enumerate(train_loader):
+            if i > 3: break
             if data is None:
                 continue
             img1, ram1, img2, ram2, sent, target = data
@@ -84,7 +85,7 @@ if __name__ == '__main__':
 
 
         if epoch % args.save_frequency == 0:
-            torch.save(text_model.state_dict(), 'weights/mix_model{}.pth'.format(epoch))
+            torch.save(mix_model.state_dict(), 'weights/mix_model{}.pth'.format(epoch))
 
 
     # print('Loading Autoencoder')

@@ -108,7 +108,7 @@ class MixDataset(Dataset):
 
         sentence = prepare_sequence(sent.split(), word_to_ix)
 
-        class = torch.zeros(2, dtype=torch.float).to(device)
+        cls = torch.zeros(2, dtype=torch.float).to(device)
         cls[bool1] = 1.
 
         return first_img, first_ram, second_img, second_ram, sentence, cls
