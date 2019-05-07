@@ -6,7 +6,7 @@ from utils.constants import word_to_ix, ram_size
 
 
 class TextOffsetModel(nn.Module):
-    def __init__(self, input_dim=256, embedding_dim=8, lstm_dim=512):
+    def __init__(self, input_dim=256, embedding_dim=8, lstm_dim=64):
         super(TextOffsetModel, self).__init__()
 
         self.input_dim = input_dim
@@ -21,8 +21,8 @@ class TextOffsetModel(nn.Module):
         # self.fc_emb2 = LinearLayer(256, 256)
         # self.fc_emb3 = nn.Linear(256, 256)
 
-        self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256, activation_name='leaky_relu')
-        self.fc_frame2 = LinearLayer(256, 64, activation_name='leaky_relu')
+        self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256, activation_name='leakyrelu')
+        self.fc_frame2 = LinearLayer(256, 64, activation_name='leakyrelu')
         self.fc_frame3 = nn.Linear(64, 2)
 
     def forward(self, sent, emb1, emb2):
@@ -34,7 +34,7 @@ class TextOffsetModel(nn.Module):
         # x_emb = self.fc_emb2(x_emb)
         # x_emb = self.fc_emb3(x_emb)
 
-        x_emb = torch.cat((emb1, emb2), 1)
+        emb = torch.cat((emb1, emb2), 1)
         x = torch.cat((emb, x), 1)
 
         x = self.fc_frame1(x)
