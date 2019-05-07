@@ -5,6 +5,46 @@ from .layers import ConvLayer, LinearLayer
 from utils.constants import word_to_ix, ram_size
 
 
+class TextOffsetModel(nn.Module):
+    def __init__(self, input_dim=256, embedding_dim=8, lstm_dim=512):
+        super(TextOffsetModel, self).__init__()
+
+        self.input_dim = input_dim
+        self.embedding_dim = embedding_dim
+        self.lstm_dim = lstm_dim
+
+        self.word_embeddings = nn.Embedding(len(word_to_ix), self.embedding_dim)
+        self.lstm = nn.LSTM(self.embedding_dim, self.lstm_dim, batch_first=True,
+                            num_layers=1, bidirectional=False)
+
+        # self.fc_emb1 = LinearLayer(self.lstm_dim, 256)
+        # self.fc_emb2 = LinearLayer(256, 256)
+        # self.fc_emb3 = nn.Linear(256, 256)
+
+        self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256, activation_name='leaky_relu')
+        self.fc_frame2 = LinearLayer(256, 64, activation_name='leaky_relu')
+        self.fc_frame3 = nn.Linear(64, 2)
+
+    def forward(self, sent, emb1, emb2):
+        x = self.word_embeddings(sent)
+        _, (x, _) = self.lstm(x)
+        x = x.view(-1, self.lstm_dim)
+
+        # x_emb = self.fc_emb1(x)
+        # x_emb = self.fc_emb2(x_emb)
+        # x_emb = self.fc_emb3(x_emb)
+
+        x_emb = torch.cat((emb1, emb2), 1)
+        x = torch.cat((emb, x), 1)
+
+        x = self.fc_frame1(x)
+        x = self.fc_frame2(x)
+        x = self.fc_frame3(x)
+        x = torch.sigmoid(x)
+
+        return x
+
+
 class MixModel(nn.Module):
     def __init__(self, embedding_dim=64, lstm_dim=512, bottleneck=256,
                  input_shape=(3, 224, 256), dropout=False,
