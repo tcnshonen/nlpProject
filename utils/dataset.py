@@ -125,7 +125,7 @@ class TextTrainingDataset(Dataset):
 
         sentence = prepare_sequence(sent.split(), word_to_ix)
 
-        output = torch.zeros(2, dtype=torch.float)
+        output = torch.zeros(2, dtype=torch.float).to(device)
         output[int(bool1 and bool2)] = 1.
 
         return first_img, second_img, sentence, output
