@@ -5,6 +5,109 @@ from .layers import ConvLayer, LinearLayer
 from utils.constants import word_to_ix, ram_size
 
 
+class MixModel(nn.Module):
+    def __init__(self, embedding_dim=64, lstm_dim=256, bottleneck=256,
+                 input_shape=(3, 224, 160), dropout=False,
+                 activation_name='relu'):
+        super(MixModel, self).__init__()
+        self.input_shape = input_shape
+        self.embedding_dim = embedding_dim
+        self.lstm_dim = lstm_dim
+        self.bottleneck = bottleneck
+        self.config = {'dropout': dropout, 'activation_name': activation_name}
+
+        self.encoder_config = {'dropout': dropout, 'activation_name': 'leakyrelu'}
+
+        #Encoder
+        self.encoder = nn.Sequential(
+            ConvLayer(3, 64, 4, stride=2, padding=1, **self.encoder_config),
+            ConvLayer(64, 128, 4, stride=2, padding=1, **self.encoder_config),
+            ConvLayer(128, 256, 4, stride=2, padding=1, **self.encoder_config),
+            ConvLayer(256, 512, 4, stride=2, padding=1, **self.encoder_config),
+            ConvLayer(512, 1024, 4, stride=2, padding=1, **self.encoder_config)
+        )
+
+        #Flatten
+        self.last_shape, self.flatten_num = self.flatten_shape(self.input_shape)
+        self.fc1 = LinearLayer(self.flatten_num, self.bottleneck, **self.config)
+
+        #Memory Decoder
+        self.fc_mem = LinearLayer(self.bottleneck, ram_size * 4, **self.config)
+        self.memory_decoder = nn.Sequential(
+            nn.Linear(4, 64),
+            nn.BatchNorm1d(ram_size),
+            nn.ELU(),
+            nn.Dropout(),
+            nn.Linear(64, 256),
+        )
+
+        #RNN
+        self.embedding = nn.Embedding(len(word_to_ix), self.embedding_dim)
+        self.lstm = nn.LSTM(self.embedding_dim, self.lstm_dim, batch_first=True)
+        self.fc1 = LinearLayer(2*self.bottleneck+self.lstm_dim, 256, activation_name='elu')
+        self.fc2 = LinearLayer(256, 64, activation_name='elu')
+        self.fc_out = nn.Linear(64, 2)
+
+
+    def flatten_shape(self, shape):
+        temp = torch.rand(1, *shape)
+        temp = self.encoder(temp)
+        temp_shape = temp.size()
+        temp_num = temp.data.view(1, -1).size(1)
+
+        return temp_shape[1:], temp_num
+
+    def flatten_forward(self, x):
+        x = self.encoder(x)
+        x = x.view(-1, self.flatten_num)
+        x = self.fc1(x)
+
+        return x
+
+    def get_diff(self, x1, x2):
+        x1 = self.flatten_forward(x1)
+        x2 = self.flatten_forward(x2)
+        x_diff = x2 - x1
+
+        return x1, x2, x_diff
+
+    def decoder_forward(self, x):
+        x = self.fc_mem(x)
+        x = mem_x.view(-1, ram_size, 4)
+        x = self.memory_decoder(x)
+        x.transpose_(1, 2)
+
+        return mem_x
+
+    def text_forward(self, sentence, x1, x2):
+        x = self.embedding(sentence)
+        _, (x, _) = self.lstm(x)
+        x = x.view(-1, self.lstm_dim)
+
+        x_ = torch.cat((x1, x2), 1)
+        x = torch.cat((x_, x), 1)
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = torch.sigmoid(self.fc_out(x))
+        
+        return x
+
+    def forward(self, x1, x2, sentence):
+        #Encoder
+        #x1, x2, diff = self.get_diff(x1, x2)
+        x1 = self.flatten_forward(x1)
+        xw = self.flatten_forward(x2)
+
+        #Decoder
+        x1 = self.decoder_forward(x1)
+        x2 = self.decoder_forward(x2)
+
+        #Sentence
+        cls = self.text_forward(sentence, x1, x2)
+
+        return x1, x2, cls
+
+
 class Autoencoder(nn.Module):
     def __init__(self, input_shape=(3, 224, 256), dropout=False,
 				 activation_name='relu'):
@@ -36,7 +139,6 @@ class Autoencoder(nn.Module):
             nn.Dropout(),
             nn.Linear(64, 256),
         )
-
 
     def flatten_shape(self, shape):
         temp = torch.rand(1, *shape)
@@ -102,7 +204,7 @@ class TextModel(nn.Module):
 class OldTextModel(nn.Module):
     def __init__(self, input_dim=256, embedding_dim=256, output_dim=256,
                  lstm_dim=256):
-        super(TextModel, self).__init__()
+        super(OldTextModel, self).__init__()
 
         self.input_dim = input_dim
         self.embedding_dim = embedding_dim
@@ -127,7 +229,7 @@ class OldTextModel(nn.Module):
 class OldAutoencoder(nn.Module):
     def __init__(self, embedding_dim=256, sentence_num=10, lstm_dim=128,
                  input_shape=(3, 224, 160), dropout=False, activation_name='relu'):
-        super(New_Autoencoder, self).__init__()
+        super(OldAutoencoder, self).__init__()
         self.sentence_num = sentence_num
         self.input_shape = input_shape
         self.lstm_dim = lstm_dim
