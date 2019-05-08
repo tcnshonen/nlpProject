@@ -21,8 +21,11 @@ class TextOffsetModel(nn.Module):
         # self.fc_emb2 = LinearLayer(256, 256)
         # self.fc_emb3 = nn.Linear(256, 256)
 
-        self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256, activation_name='leakyrelu')
-        self.fc_frame2 = LinearLayer(256, 64, activation_name='leakyrelu')
+        self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256,
+                                     activation_name='leakyrelu', dropout=True)
+        self.fc_frame2 = LinearLayer(256, 64, activation_name='leakyrelu', dropout=True)
+        # self.fc_frame3 = LinearLayer(128, 64, activation_name='leakyrelu')
+        # self.fc_frame4 = LinearLayer(64, 32, activation_name='leakyrelu')
         self.fc_frame3 = nn.Linear(64, 2)
 
     def forward(self, sent, emb1, emb2):
@@ -40,6 +43,8 @@ class TextOffsetModel(nn.Module):
         x = self.fc_frame1(x)
         x = self.fc_frame2(x)
         x = self.fc_frame3(x)
+        # x = self.fc_frame4(x)
+        # x = self.fc_frame5(x)
         x = torch.sigmoid(x)
 
         return x
@@ -150,7 +155,7 @@ class MixModel(nn.Module):
 
 class Autoencoder(nn.Module):
     def __init__(self, input_shape=(3, 224, 256), dropout=False,
-				 activation_name='relu'):
+                 activation_name='relu'):
         super(Autoencoder, self).__init__()
         self.input_shape = input_shape
         self.config = {'dropout': dropout, 'activation_name': activation_name}

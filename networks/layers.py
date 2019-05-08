@@ -65,7 +65,7 @@ class LinearLayer(nn.Module):
         modules.append(activation(activation_name))
 
         if self.dropout:
-            modules.append(nn.Dropout(p=0.2))
+            modules.append(nn.Dropout(p=0.5))
 
         self.layers = nn.Sequential(*modules)
 
