@@ -67,10 +67,10 @@ class MixDataset(Dataset):
         first_ram = torch.from_numpy(first_ram).to(device, dtype=torch.long)
 
 
-        if max_num == 0:
+        if max_num < self.max_interval:
             return None
 
-        second_num = random.randint(1, max_num)
+        second_num = random.randint(self.min_interval, self.max_interval)
 
         # if bool1:
         #     if bool2:
