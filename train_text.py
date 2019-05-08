@@ -55,6 +55,7 @@ if __name__ == '__main__':
             img1, _, img2, _, sent, target = data
             if len(img1) == 1:
                 continue
+            target = target.to(device)
 
             with torch.no_grad():
                 embedding1 = autoencoder.flatten_forward(img1)
@@ -62,7 +63,7 @@ if __name__ == '__main__':
 
             optimizer.zero_grad()
             pred = text_model(sent, embedding1, embedding2)
-            loss = criterion(pred, target.to(device))
+            loss = criterion(pred, target)
             loss.backward()
             optimizer.step()
 
@@ -81,6 +82,7 @@ if __name__ == '__main__':
             if data is None:
                 continue
             img1, _, img2, _, sent, target = data
+            target = target.to(device)
             count1 += 1
             count2 += len(img1)
 
