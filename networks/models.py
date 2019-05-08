@@ -6,7 +6,7 @@ from utils.constants import word_to_ix, ram_size
 
 
 class TextOffsetModel(nn.Module):
-    def __init__(self, input_dim=256, embedding_dim=32, lstm_dim=256):
+    def __init__(self, input_dim=256, embedding_dim=32, lstm_dim=64):
         super(TextOffsetModel, self).__init__()
 
         self.input_dim = input_dim
@@ -18,9 +18,10 @@ class TextOffsetModel(nn.Module):
                             num_layers=1, bidirectional=False)
 
         self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256,
-                                     activation_name='leakyrelu', dropout=False)
-        self.fc_frame2 = LinearLayer(256, 256, activation_name='leakyrelu', dropout=False)
-        self.fc_frame3 = nn.Linear(256, 2)
+                                     activation_name='leakyrelu')
+        self.fc_frame2 = LinearLayer(256, 256, activation_name='leakyrelu')
+		self.fc_frame3 = LinearLayer(256, 256, activation_name='leakyrelu')
+        self.fc_out = nn.Linear(256, 2)
 
     def forward(self, sent, emb1, emb2):
         x = self.word_embeddings(sent)
@@ -33,6 +34,7 @@ class TextOffsetModel(nn.Module):
         x = self.fc_frame1(x)
         x = self.fc_frame2(x)
         x = self.fc_frame3(x)
+		x = self.fc_out(x)
 
         return x
 
