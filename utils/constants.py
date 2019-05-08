@@ -12,12 +12,12 @@ data_transform = transforms.Compose([
 
 
 sentence_dic = {
-    'left_move': 'go to left',
-    'left_jump': 'go to left',
-    'left_spin': 'go to left',
-    'right_move': 'go to right',
-    'right_jump': 'go to right',
-    'right_spin': 'go to right',
+    'left_move': 'move toward left',
+    'left_jump': 'jump toward left',
+    'left_spin': 'spin toward left',
+    'right_move': 'move toward right',
+    'right_jump': 'jump toward right',
+    'right_spin': 'spin toward right',
 }
 
 sentence_dic_ = {

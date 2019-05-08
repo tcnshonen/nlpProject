@@ -50,16 +50,16 @@ class MixDataset(Dataset):
     def __getitem__(self, idx):
         #bool1 = np.random.choice([0, 1], p=[0.25, 0.75])
         #bool2 = np.random.choice([0, 1], p=[0.3, 0.7])
-        bool1 = np.random.choice([0, 1], p=[0.4, 0.6])
+        bool1 = np.random.choice([0, 1], p=[0.5, 0.5])
 
         action_true, sent = random.choice(list(sentence_dic.items()))
-        # action_false = action_true
-        # while action_true == action_false:
-        #     action_false = random.choice(list(sentence_dic.keys()))
-        if 'left' in sent:
-            action_false = random.choice(list(sentence_dic.keys())[3:])
-        else:
-            action_false = random.choice(list(sentence_dic.keys())[:3])
+        action_false = action_true
+        while action_true == action_false:
+            action_false = random.choice(list(sentence_dic.keys()))
+        # if 'left' in sent:
+        #     action_false = random.choice(list(sentence_dic.keys())[3:])
+        # else:
+        #     action_false = random.choice(list(sentence_dic.keys())[:3])
 
         action = action_true if bool1 else action_false
         max_num = self.max_nums[action][idx]
