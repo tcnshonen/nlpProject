@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     print('Loading Autoencoder')
     autoencoder = Autoencoder().to(device)
-    autoencoder.load_state_dict(torch.load('weights/model1.pth'))
+    #autoencoder.load_state_dict(torch.load('weights/model1.pth'))
     autoencoder.eval()
 
     print('Creating Model')
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
 
     length = len(loader)
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = torch.nn.BCEWithLogitsLoss()
     for epoch in range(1, args.epochs+1):
         t0 = perf_counter()
         text_model.train()
@@ -71,7 +71,7 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
 
 
-        print('                                                     ', end='\r')
+        print('\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t', end='\r')
         t0 = perf_counter()
         total_loss, acc = 0., 0.
         count1, count2 = 0, 0
@@ -88,7 +88,7 @@ if __name__ == '__main__':
                 embedding2 = autoencoder.flatten_forward(img2)
 
             pred = text_model(sent, embedding1, embedding2)
-            total_loss += F.binary_cross_entropy(pred, target).item()
+            total_loss += criterion(pred, target).item()
             _, pred_idx = torch.max(pred, 1)
             _, target_idx = torch.max(target, 1)
             acc += sum([i == j for i, j in zip(pred_idx, target_idx)]).item()
