@@ -22,7 +22,7 @@ class TextOffsetModel(nn.Module):
         self.fc_frame2 = LinearLayer(256, 64, activation_name='leakyrelu')
         # self.fc_frame3 = LinearLayer(128, 64, activation_name='leakyrelu')
         # self.fc_frame4 = LinearLayer(64, 32, activation_name='leakyrelu')
-        self.fc_frame3 = nn.Linear(64, 2)
+        self.fc_frame3 = nn.Linear(64, 1)
 
     def forward(self, sent, emb1, emb2):
         x = self.word_embeddings(sent)

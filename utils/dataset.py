@@ -56,10 +56,6 @@ class MixDataset(Dataset):
         action_false = action_true
         while action_true == action_false:
             action_false = random.choice(list(sentence_dic.keys()))
-        # if 'left' in sent:
-        #     action_false = random.choice(list(sentence_dic.keys())[3:])
-        # else:
-        #     action_false = random.choice(list(sentence_dic.keys())[:3])
 
         action = action_true if bool1 else action_false
         max_num = self.max_nums[action][idx]
@@ -108,8 +104,9 @@ class MixDataset(Dataset):
 
         sentence = prepare_sequence(sent.split(), word_to_ix)
 
-        cls = torch.zeros(2, dtype=torch.float).to(device)
-        cls[bool1] = 1.
+        cls = torch.zeros(1, dtype=torch.float).to(device)
+        if bool1:
+            cls[0] = 1.
 
         return first_img, first_ram, second_img, second_ram, sentence, cls
 
