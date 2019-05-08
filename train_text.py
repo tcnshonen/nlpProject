@@ -14,8 +14,8 @@ from networks.models import TextOffsetModel, Autoencoder
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--epochs', default=200, type=int)
-    parser.add_argument('--batch_size', default=16, type=int)
-    parser.add_argument('--lr', default=0.003, type=float)
+    parser.add_argument('--batch_size', default=64, type=int)
+    parser.add_argument('--lr', default=0.03, type=float)
     parser.add_argument('--save_frequency', default=10, type=int)
     args = parser.parse_args()
 
@@ -27,6 +27,7 @@ if __name__ == '__main__':
 
     print('Creating Model')
     text_model = TextOffsetModel().to(device)
+    #text_model.load_state_dict(torch.load('weights/text_offset_model20.pth'))
     optimizer = optim.Adam(text_model.parameters(), lr=args.lr)
 
     print('Loading Data')
@@ -35,10 +36,10 @@ if __name__ == '__main__':
     test_size = len(dataset) - train_size
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size,
+    train_loader = DataLoader(dataset, batch_size=args.batch_size,
                               shuffle=True, collate_fn=my_collate)
-    test_loader = DataLoader(test_dataset, batch_size=args.batch_size,
-                             shuffle=False, collate_fn=my_collate)
+    # test_loader = DataLoader(test_dataset, batch_size=args.batch_size,
+    #                          shuffle=False, collate_fn=my_collate)
 
 
     for epoch in range(1, args.epochs+1):
@@ -69,6 +70,9 @@ if __name__ == '__main__':
 
 
         print()
+        _, test_dataset = random_split(dataset, [train_size, test_size])
+        test_loader = DataLoader(test_dataset, batch_size=args.batch_size,
+                                 shuffle=True, collate_fn=my_collate)
         length = len(test_loader)
         t0 = perf_counter()
         total_loss, acc = 0., 0.
@@ -94,11 +98,11 @@ if __name__ == '__main__':
 
             print('Train Epoch: {} [{}/{} ({:.1f}%)] - {}s'.format(
                 epoch, i + 1, length, 100. * (i + 1) / length,
-                int(perf_counter() - t0)))
+                int(perf_counter() - t0)), end='\r')
             torch.cuda.empty_cache()
 
         print()
-        print('Loss: {:.4f}\tAcc: {:.2f}%'.format(total_loss / count1, acc / count2))
+        print('Loss: {:.4f}\tAcc: {:.2f}%'.format(total_loss / count1, 100. * acc / count2))
         print()
 
         if epoch % args.save_frequency == 0:
