@@ -1,5 +1,6 @@
 import os
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import argparse
 import torch.optim as optim
@@ -44,7 +45,7 @@ if __name__ == '__main__':
 
 
     length = len(loader)
-    criterion = torch.nn.BCEWithLogitsLoss()
+    criterion = nn.CrossEntropyLoss()
     for epoch in range(1, args.epochs+1):
         t0 = perf_counter()
         text_model.train()
@@ -89,8 +90,8 @@ if __name__ == '__main__':
 
             pred = text_model(sent, embedding1, embedding2)
             total_loss += criterion(pred, target).item()
-            pred = [float(x.item() > 0.5) for x in torch.sigmoid(pred)]
-            acc += sum(x == y for x, y in zip(pred, target)).item()
+            pred_idx = torch.max(pred, 1)[1]
+            acc += sum(x == y for x, y in zip(pred_idx, target)).item()
 
 
             print('Test Epoch: {} [{}/{} ({:.1f}%)] - {}s'.format(

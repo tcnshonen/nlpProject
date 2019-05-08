@@ -19,10 +19,8 @@ class TextOffsetModel(nn.Module):
 
         self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256,
                                      activation_name='leakyrelu', dropout=False)
-        self.fc_frame2 = LinearLayer(256, 128, activation_name='leakyrelu', dropout=False)
-        self.fc_frame3 = LinearLayer(128, 64, activation_name='leakyrelu', dropout=False)
-        self.fc_frame4 = LinearLayer(64, 32, activation_name='leakyrelu', dropout=False)
-        self.fc_frame5 = nn.Linear(32, 1)
+        self.fc_frame2 = LinearLayer(256, 256, activation_name='leakyrelu', dropout=False)
+        self.fc_frame3 = nn.Linear(256, 2)
 
     def forward(self, sent, emb1, emb2):
         x = self.word_embeddings(sent)
@@ -35,8 +33,6 @@ class TextOffsetModel(nn.Module):
         x = self.fc_frame1(x)
         x = self.fc_frame2(x)
         x = self.fc_frame3(x)
-        x = self.fc_frame4(x)
-        x = self.fc_frame5(x)
 
         return x
 
