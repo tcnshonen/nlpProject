@@ -59,12 +59,14 @@ if __name__ == '__main__':
 
             with torch.no_grad():
                 embedding1 = autoencoder.flatten_forward(img1)
-                embedding1 = embedding1 / torch.norm(embedding1, 1)
                 embedding2 = autoencoder.flatten_forward(img2)
-                embedding2 = embedding2 / torch.norm(embedding2, 1)
+                offset = embedding2 - embedding1
+                # embedding1 = embedding1 / torch.norm(embedding1, 1)
+                # embedding2 = embedding2 / torch.norm(embedding2, 1)
 
             optimizer.zero_grad()
-            pred = text_model(sent, embedding1, embedding2)
+            # pred = text_model(sent, embedding1, embedding2)
+            pred = text_model(offset)
             loss = criterion(pred, target)
             loss.backward()
             for p in text_model.parameters():
@@ -92,11 +94,13 @@ if __name__ == '__main__':
 
             with torch.no_grad():
                 embedding1 = autoencoder.flatten_forward(img1)
-                embedding1 = embedding1 / torch.norm(embedding1, 1)
                 embedding2 = autoencoder.flatten_forward(img2)
-                embedding2 = embedding2 / torch.norm(embedding2, 1)
+                offset = embedding2 - embedding1
+                # embedding1 = embedding1 / torch.norm(embedding1, 1)
+                # embedding2 = embedding2 / torch.norm(embedding2, 1)
 
-            pred = text_model(sent, embedding1, embedding2)
+            # pred = text_model(sent, embedding1, embedding2)
+            pred = text_model(offset)
             total_loss += criterion(pred, target).item()
             pred_idx = torch.max(pred, 1)[1]
             acc += sum(x == y for x, y in zip(pred_idx, target)).item()

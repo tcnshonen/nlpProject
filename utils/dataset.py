@@ -50,9 +50,9 @@ class MixDataset(Dataset):
     def __getitem__(self, idx):
         #bool1 = np.random.choice([0, 1], p=[0.25, 0.75])
         #bool2 = np.random.choice([0, 1], p=[0.3, 0.7])
-        bool1 = int(np.random.choice([0, 1], p=[0.3, 0.7]))
+        bool1 = int(np.random.choice([0, 1], p=[0.6, 0.4]))
 
-        action_true, sent = random.choice(list(sentence_dic.items()))
+        action_true, sent = list(sentence_dic.items())[0]# random.choice(list(sentence_dic.items()))
         action_false = action_true
         while action_true == action_false:
             action_false = random.choice(list(sentence_dic.keys()))

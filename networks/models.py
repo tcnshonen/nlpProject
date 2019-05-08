@@ -13,30 +13,41 @@ class TextOffsetModel(nn.Module):
         self.embedding_dim = embedding_dim
         self.lstm_dim = lstm_dim
 
-        self.word_embeddings = nn.Embedding(len(word_to_ix), self.embedding_dim)
+        # self.word_embeddings = nn.Embedding(len(word_to_ix), self.embedding_dim)
         # self.lstm = nn.LSTM(self.embedding_dim, self.lstm_dim, batch_first=True,
         #                     num_layers=1, bidirectional=False)
 
         # self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256,
         #                              activation_name='leakyrelu')
-        self.fc_frame1 = LinearLayer(2*self.input_dim+3*self.embedding_dim, 256,
-                                     activation_name='relu')
-        self.fc_frame2 = LinearLayer(256, 256, activation_name='relu')
-        self.fc_frame3 = LinearLayer(256, 256, activation_name='relu')
+        self.fc_frame1 = LinearLayer(256, 256, activation_name='leakyrelu')
+        self.fc_frame2 = LinearLayer(256, 256, activation_name='leakyrelu')
+        # self.fc_frame3 = LinearLayer(256, 256, activation_name='leakyrelu')
         self.fc_out = nn.Linear(256, 2)
 
-    def forward(self, sent, emb1, emb2):
-        x = self.word_embeddings(sent)
-        #_, (x, _) = self.lstm(x)
-        # x = x.view(-1, self.lstm_dim)
-        x = x.view(-1, 3*self.embedding_dim)
+        nn.init.xavier_uniform(self.fc_frame1.weight)
+        nn.init.xavier_uniform(self.fc_frame2.weight)
+        nn.init.xavier_uniform(self.fc_out.weight)
 
-        emb = torch.cat((emb1, emb2), 1)
-        x = torch.cat((emb, x), 1)
+    # def forward(self, sent, emb1, emb2):
+    #     x = self.word_embeddings(sent)
+    #     #_, (x, _) = self.lstm(x)
+    #     # x = x.view(-1, self.lstm_dim)
+    #     x = x.view(-1, 3*self.embedding_dim)
+    #
+    #     emb = torch.cat((emb1, emb2), 1)
+    #     x = torch.cat((emb, x), 1)
+    #
+    #     x = self.fc_frame1(x)
+    #     x = self.fc_frame2(x)
+    #     x = self.fc_frame3(x)
+    #     x = self.fc_out(x)
+    #
+    #     return x
 
+    def forward(self, x):
         x = self.fc_frame1(x)
-        x = self.fc_frame2(x)
-        x = self.fc_frame3(x)
+        # x = self.fc_frame2(x)
+        # x = self.fc_frame3(x)
         x = self.fc_out(x)
 
         return x
