@@ -44,6 +44,7 @@ if __name__ == '__main__':
 
 
     length = len(loader)
+    criterion = nn.BCEWithLogitsLoss()
     for epoch in range(1, args.epochs+1):
         t0 = perf_counter()
         text_model.train()
@@ -60,7 +61,7 @@ if __name__ == '__main__':
 
             optimizer.zero_grad()
             pred = text_model(sent, embedding1, embedding2)
-            loss = F.binary_cross_entropy(pred, target)
+            loss = criterion(pred, target)
             loss.backward()
             optimizer.step()
 

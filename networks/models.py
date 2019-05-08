@@ -17,13 +17,9 @@ class TextOffsetModel(nn.Module):
         self.lstm = nn.LSTM(self.embedding_dim, self.lstm_dim, batch_first=True,
                             num_layers=1, bidirectional=False)
 
-        # self.fc_emb1 = LinearLayer(self.lstm_dim, 256)
-        # self.fc_emb2 = LinearLayer(256, 256)
-        # self.fc_emb3 = nn.Linear(256, 256)
-
         self.fc_frame1 = LinearLayer(2*self.input_dim+self.lstm_dim, 256,
-                                     activation_name='leakyrelu', dropout=True)
-        self.fc_frame2 = LinearLayer(256, 64, activation_name='leakyrelu', dropout=True)
+                                     activation_name='leakyrelu')
+        self.fc_frame2 = LinearLayer(256, 64, activation_name='leakyrelu')
         # self.fc_frame3 = LinearLayer(128, 64, activation_name='leakyrelu')
         # self.fc_frame4 = LinearLayer(64, 32, activation_name='leakyrelu')
         self.fc_frame3 = nn.Linear(64, 2)
@@ -33,10 +29,6 @@ class TextOffsetModel(nn.Module):
         _, (x, _) = self.lstm(x)
         x = x.view(-1, self.lstm_dim)
 
-        # x_emb = self.fc_emb1(x)
-        # x_emb = self.fc_emb2(x_emb)
-        # x_emb = self.fc_emb3(x_emb)
-
         emb = torch.cat((emb1, emb2), 1)
         x = torch.cat((emb, x), 1)
 
@@ -45,7 +37,6 @@ class TextOffsetModel(nn.Module):
         x = self.fc_frame3(x)
         # x = self.fc_frame4(x)
         # x = self.fc_frame5(x)
-        x = torch.sigmoid(x)
 
         return x
 
