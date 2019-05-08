@@ -89,9 +89,8 @@ if __name__ == '__main__':
 
             pred = text_model(sent, embedding1, embedding2)
             total_loss += criterion(pred, target).item()
-            _, pred_idx = torch.max(pred, 1)
-            _, target_idx = torch.max(target, 1)
-            acc += sum([i == j for i, j in zip(pred_idx, target_idx)]).item()
+            pred = [float(x.item() > 0.5) for x in torch.sigmoid(pred)]
+            acc += sum(x == y for x, y in zip(pred, target)).item()
 
 
             print('Test Epoch: {} [{}/{} ({:.1f}%)] - {}s'.format(
