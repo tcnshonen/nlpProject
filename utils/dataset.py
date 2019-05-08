@@ -50,7 +50,7 @@ class MixDataset(Dataset):
     def __getitem__(self, idx):
         #bool1 = np.random.choice([0, 1], p=[0.25, 0.75])
         #bool2 = np.random.choice([0, 1], p=[0.3, 0.7])
-        bool1 = np.random.choice([0, 1], p=[0.5, 0.5])
+        bool1 = int(np.random.choice([0, 1], p=[0.5, 0.5]))
 
         action_true, sent = random.choice(list(sentence_dic.items()))
         action_false = action_true
@@ -104,10 +104,10 @@ class MixDataset(Dataset):
 
         sentence = prepare_sequence(sent.split(), word_to_ix)
 
-        cls = torch.zeros(1, dtype=torch.long).to(device)
-        cls[0] = bool1
+        # cls = torch.zeros(1, dtype=torch.long).to(device)
+        # cls[0] = bool1
 
-        return first_img, first_ram, second_img, second_ram, sentence, cls
+        return first_img, first_ram, second_img, second_ram, sentence, bool1
 
 '''
 ###############################################################################
