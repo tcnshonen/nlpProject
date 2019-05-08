@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
             optimizer.zero_grad()
             pred = text_model(sent, embedding1, embedding2)
-            loss = criterion(pred, target)
+            loss = criterion(pred, target.to(device))
             loss.backward()
             optimizer.step()
 
