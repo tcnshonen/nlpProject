@@ -69,8 +69,7 @@ if __name__ == '__main__':
             pred = text_model(offset)
             loss = criterion(pred, target)
             loss.backward()
-            for p in text_model.parameters():
-                p.grad.data.clamp_(-0.5, 0.5)
+            nn.utils.clip_grad_norm(text_model.parameters(), 0.5)
             optimizer.step()
 
             print('Train Epoch: {} [{}/{} ({:.1f}%)]\tLoss: {:.4f} - {}s'.format(

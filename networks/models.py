@@ -24,9 +24,13 @@ class TextOffsetModel(nn.Module):
         # self.fc_frame3 = LinearLayer(256, 256, activation_name='leakyrelu')
         self.fc_out = nn.Linear(256, 2)
 
-        nn.init.xavier_uniform(self.fc_frame1.weight)
-        nn.init.xavier_uniform(self.fc_frame2.weight)
-        nn.init.xavier_uniform(self.fc_out.weight)
+        def init_weights(m):
+            if type(m) == nn.Linear:
+                nn.init.xavier_uniform_(m.weight)
+                m.bias.data.fill_(0.01)
+        self.fc_frame1.apply(init_weights)
+        self.fc_frame2.apply(init_weights)
+        nn.init.xavier_uniform_(self.fc_out.weight)
 
     # def forward(self, sent, emb1, emb2):
     #     x = self.word_embeddings(sent)
