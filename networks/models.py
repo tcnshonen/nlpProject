@@ -6,7 +6,7 @@ from utils.constants import word_to_ix, ram_size
 
 
 class TextOffsetModel(nn.Module):
-    def __init__(self, input_dim=256, embedding_dim=8, lstm_dim=64):
+    def __init__(self, input_dim=256, embedding_dim=64, lstm_dim=128):
         super(TextOffsetModel, self).__init__()
 
         self.input_dim = input_dim
