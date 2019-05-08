@@ -32,21 +32,22 @@ if __name__ == '__main__':
 
     print('Loading Data')
     dataset = MixDataset('../mario')
-    train_size = int(0.8 * len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
-
-    train_loader = DataLoader(dataset, batch_size=args.batch_size,
-                              shuffle=True, collate_fn=my_collate)
+    loader = DataLoader(dataset, batch_size=args.batch_size,
+                        shuffle=True, collate_fn=my_collate)
+    # train_size = int(0.8 * len(dataset))
+    # test_size = len(dataset) - train_size
+    # train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+    # train_loader = DataLoader(dataset, batch_size=args.batch_size,
+    #                           shuffle=True, collate_fn=my_collate)
     # test_loader = DataLoader(test_dataset, batch_size=args.batch_size,
     #                          shuffle=False, collate_fn=my_collate)
 
 
+    length = len(loader)
     for epoch in range(1, args.epochs+1):
-        length = len(train_loader)
         t0 = perf_counter()
         text_model.train()
-        for i, data in enumerate(train_loader):
+        for i, data in enumerate(loader):
             if data is None:
                 continue
             img1, _, img2, _, sent, target = data
@@ -69,16 +70,12 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
 
 
-        print()
-        _, test_dataset = random_split(dataset, [train_size, test_size])
-        test_loader = DataLoader(test_dataset, batch_size=args.batch_size,
-                                 shuffle=True, collate_fn=my_collate)
-        length = len(test_loader)
+        print('                                                     ', end='\r')
         t0 = perf_counter()
         total_loss, acc = 0., 0.
         count1, count2 = 0, 0
         text_model.eval()
-        for i, data in enumerate(test_loader):
+        for i, data in enumerate(loader):
             if data is None:
                 continue
             img1, _, img2, _, sent, target = data
@@ -96,7 +93,7 @@ if __name__ == '__main__':
             acc += sum([i == j for i, j in zip(pred_idx, target_idx)]).item()
 
 
-            print('Train Epoch: {} [{}/{} ({:.1f}%)] - {}s'.format(
+            print('Test Epoch: {} [{}/{} ({:.1f}%)] - {}s'.format(
                 epoch, i + 1, length, 100. * (i + 1) / length,
                 int(perf_counter() - t0)), end='\r')
             torch.cuda.empty_cache()
